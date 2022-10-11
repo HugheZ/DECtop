@@ -48,5 +48,8 @@ CMakeLists.txt.user*
 # QtCreator 4.8< compilation database 
 compile_commands.json
 
+# Additional files, such as dectalk.dll which isn't open source
+/includes/*
+
 # QtCreator local machine specific files for imported projects
 *creator.user*
