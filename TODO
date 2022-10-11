@@ -1,0 +1,3 @@
+https://stackoverflow.com/questions/69853384/pyqt5-missing-qtquick-studio-module
+- hah. turns out the installation for pyside doesn't include the studio directory. Until then, removing relative fonts from Constants.qml
+- hooks
