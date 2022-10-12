@@ -17,8 +17,8 @@ Window {
     maximumHeight: 1080
     maximumWidth: 950
     title: "DECtop"
-    onClosing: {
-        close.accepted = false
+    onClosing: (closeEvent) => {
+        closeEvent.accepted = false
         beforeQuit()
     }
 
@@ -44,7 +44,7 @@ Window {
             MenuSeparator {}
             Action {
                 text: qsTr("&Quit")
-                onTriggered: beforeQuit()
+                onTriggered: Qt.quit()
             }
         }
     }
@@ -54,7 +54,7 @@ Window {
         text: "Are you sure you would like to quit? You have unsaved changes to transcript and or audio file."
 
         buttons: MessageDialog.Yes | MessageDialog.Cancel
-        onAccepted: { Qt.quit() }
+        onAccepted: { Qt.exit(0) } //MUST be exit, or else we get an onClose loop
     }
 
     MessageDialog {
@@ -66,6 +66,7 @@ Window {
     }
 
     MainLayout {
+        objectName: "mainLayout"
         id: mainScreen
         anchors.left: parent.left
         anchors.right: parent.right
@@ -86,4 +87,3 @@ Window {
         else mainScreen.newDocument()
     }
 }
-

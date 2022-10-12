@@ -99,10 +99,14 @@ Rectangle {
         }
     }
 
-    function submitAudio(dir, name) {
-        player.source = dir + '/' + name;
+    function submitAudio(dir, name, playOnStart) {
+        console.log(dir)
+        var url = Qt.url(dir)
+        url = url + '/' + name
+        player.source = url;
         audioTrack.text = name
-        play()
+        if (playOnStart)
+            play()
     }
 
     //called only by NEW

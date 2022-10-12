@@ -14,6 +14,9 @@ Rectangle {
 
     property bool dirty: false
 
+    //Python backend object
+    QmlBackend {id: backend}
+
     ColumnLayout {
         id: gridLayout
         anchors.fill: parent
@@ -92,9 +95,9 @@ Rectangle {
                 Layout.fillWidth: true
 
                 //TODO hooks
-                onPlayAudio: (dir, filename) => playSavedAudio(dir, filename)
-                onEditAudio: (dir, filename) => loadAndEditAudio(dir, filename)
-                onDeleteAudio: (dir) => deleteAudio(dir)
+                onPlayAudio: (dir, filename) => mainLayout.playSavedAudio(dir, filename)
+                onEditAudio: (dir, filename) => mainLayout.loadAndEditAudio(dir, filename)
+                onDeleteAudio: (dir) => mainLayout.deleteAudioDir(dir)
             }
 
         }
@@ -117,17 +120,36 @@ Rectangle {
     }
 
     function loadAndEditAudio(dir, filename) {
-        //TODO
-        console.log('TODO: load and edit ' + dir + '/' + filename)
+        if (backend && backend.is_live) {
+            backend.load_transcript(dir + '/' + filename)
+
+            //now link up to the ui
+            var backendModel = backend.get_model()
+            editPanel.setDect(backendModel)
+            //IF we have cached audio, also submit that
+            var qUrl = backend.get_qurl_cached_audio()
+            if (qUrl) {
+                qUrl = qUrl.toString()
+                const lastDirIndex = qUrl.lastIndexOf('/')
+                audioControl.submitAudio(qUrl.slice(0, lastDirIndex),
+                                         qUrl.slice(lastDirIndex + 1),
+                                         false)
+            }
+        } else {
+            console.log('TODO: load and edit ' + dir + '/' + filename)
+        }
     }
 
-    function deleteAudio(dir) {
-        //TODO
-        console.log('TODO: delete ' + dir)
+    function deleteAudioDir(dir) {
+        if (backend && backend.is_live) {
+            backend.delete_audio_library(dir)
+        } else {
+            console.log('TODO: delete ' + dir)
+        }
     }
 
     //just plays the cached audio, nothing else
     function playSavedAudio(dir, filename) {
-        audioControl.submitAudio(dir, filename)
+        audioControl.submitAudio(dir, filename, true)
     }
 }

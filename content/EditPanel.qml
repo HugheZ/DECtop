@@ -63,8 +63,9 @@ Rectangle {
 
                 SpinBox {
                     id: speakingRate
-                    to: 256
-                    from: 1
+                    from: 75
+                    value: 200
+                    to: 600
                     editable: true
                     Layout.maximumWidth: 80
                     Layout.preferredWidth: 80
@@ -80,8 +81,6 @@ Rectangle {
                     text: qsTr("Untitled")
                     font.pixelSize: 12
                 }
-
-
 
             }
         }
@@ -114,6 +113,21 @@ Rectangle {
             editPanel.dirty = true
             titleAndLocation.text = titleAndLocation.text + '*'
             editPanel.modified()
+        }
+    }
+
+    //expects dect obj, see example.dect for format
+    //unfortunately, changing text still emits the modified event, so that sucks
+    function setDect(dect) {
+        if (dect) {
+            if (dect.text)
+                textInput.text = dect.text
+            if (dect.metadata) {
+                if (dect.metadata.rate)
+                    speakingRate.value = dect.metadata.rate
+            }
+        } else {
+            reset()
         }
     }
 

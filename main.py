@@ -3,11 +3,12 @@ import sys
 import argparse
 
 from os import path, environ
-from backend.qml.hooks.filehooks import delete_audio_library, load_transcript
+from backend.engine.backend import QmlBackend #import so it gets registered with annotation
 from backend.engine.dec import DECEngine
 from backend.registry.regset import setup_dec_reg
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtCore import QObject, QCoreApplication
 
 def __setup_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Launches and optionally configures the DECtalk application")
@@ -37,14 +38,20 @@ if __name__ == "__main__":
     app = QGuiApplication(sys.argv)
     engine = QQmlApplicationEngine()
 
+    # set up runtime env
     __setup_env()
     __add_modules(engine)
+
     engine.load(path.join(path.dirname(__file__), "content", "App.qml"))
 
-    # hookup signals
+    # WOO HOO needing to manually bind quit is FUN
+    engine.quit.connect(QCoreApplication.quit)
+    engine.quit.connect(app.quit)
 
-    # run
     if not engine.rootObjects():
         sys.exit(-1)
+
+
+    # run
     sys.exit(app.exec())
 

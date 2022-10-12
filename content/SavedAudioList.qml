@@ -57,7 +57,7 @@ Rectangle {
 
             delegate: SavedAudio {
                 id: savedAudioDelegate
-                width: parent.width - 5
+                width: listView.width - 5
                 height: 60
                 directory: filePath // /place/in/dir/savedir/filename
                 titleText: fileName // /place/in/dir/savedir/filename/<filename.dect or filename.wav>
