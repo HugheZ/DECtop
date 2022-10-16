@@ -14,8 +14,6 @@ Window {
     visible: true
     minimumHeight: 300
     minimumWidth: 500
-    maximumHeight: 1080
-    maximumWidth: 950
     title: "DECtop"
     onClosing: (closeEvent) => {
         closeEvent.accepted = false
@@ -36,14 +34,23 @@ Window {
             title: qsTr("&File")
             Action {
                 text: qsTr("New")
+                shortcut: StandardKey.Open
                 onTriggered: beforeNew()
             }
-//            Action { text: qsTr("&Import...") }
-            Action { text: qsTr("&Save") }
-            Action { text: qsTr("Save &As...") }
+            Action {
+                text: qsTr("&Save")
+                shortcut: StandardKey.Save
+                onTriggered: window.save()
+            }
+            Action {
+                text: qsTr("Save &As...")
+                shortcut: "Ctrl+Shift+s"
+                onTriggered: window.openSaveAs()
+            }
             MenuSeparator {}
             Action {
                 text: qsTr("&Quit")
+                shortcut: StandardKey.Quit
                 onTriggered: Qt.quit()
             }
         }
@@ -63,6 +70,34 @@ Window {
 
         buttons: MessageDialog.Yes | MessageDialog.Cancel
         onAccepted: { mainScreen.newDocument() }
+    }
+
+    Dialog {
+        width: 200
+        id: saveAsDialog
+        title: qsTr("Input save name")
+
+        contentItem: TextField {
+            id: newNameField
+            placeholderText: "Input Name"
+
+            onTextChanged: {
+                if (newNameField.text)
+                    saveAsDialog.standardButton(Dialog.Ok).enabled = true
+                else saveAsDialog.standardButton(Dialog.Ok).enabled = false
+            }
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+
+        onOpened: {
+            saveAsDialog.standardButton(Dialog.Ok).enabled = false
+            newNameField.text = null
+        }
+
+        onAccepted: {
+            if (newNameField.text)
+                window.saveAs(newNameField.text)
+        }
     }
 
     MainLayout {
@@ -85,5 +120,22 @@ Window {
         if (mainScreen.dirty)
             newConfirm.open()
         else mainScreen.newDocument()
+    }
+
+    function openSaveAs() {
+        saveAsDialog.open()
+        newNameField.forceActiveFocus()
+    }
+
+    function save() {
+        console.log(mainScreen.dirty, mainScreen.getCurrentFileDir(), mainScreen.dirty && mainScreen.getCurrentFileDir())
+        if (mainScreen.dirty && mainScreen.getCurrentFileDir()) //if has dir, it already has a save name
+            mainScreen.save()
+        else openSaveAs()
+    }
+
+    function saveAs(name) {
+        if (mainScreen.dirty)
+            mainScreen.saveAs(Constants.saveDir, name)
     }
 }

@@ -12,6 +12,9 @@ Rectangle {
     signal modified()
     property bool dirty: false
 
+    property alias text: textInput.text
+    property alias rate: speakingRate.value
+
     ColumnLayout {
         id: columnLayout
         anchors.fill: parent
@@ -108,12 +111,20 @@ Rectangle {
 
     }
 
+    //emits the modified signal if not already
     function setModifiedAndEmit() {
         if (!editPanel.dirty) {
             editPanel.dirty = true
             titleAndLocation.text = titleAndLocation.text + '*'
             editPanel.modified()
         }
+    }
+
+    //called on save, this removes the * at the end of the file and clears dirty
+    function clearDirty() {
+        editPanel.dirty = false
+        if (titleAndLocation.text.endsWith('*'))
+            titleAndLocation.text = titleAndLocation.text.replace(/.$/, '') //remove last * to indicate modified
     }
 
     //expects dect obj, see example.dect for format
@@ -131,6 +142,7 @@ Rectangle {
         }
     }
 
+    //completely resets the state to NEW
     function reset() {
         editPanel.dirty = false
         speakingRate.value = 0

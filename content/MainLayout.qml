@@ -12,6 +12,7 @@ Rectangle {
     height: Constants.height
     color: Constants.backgroundColor
 
+    //TODO: make this alias of editPanel.dirty
     property bool dirty: false
 
     //Python backend object
@@ -151,5 +152,51 @@ Rectangle {
     //just plays the cached audio, nothing else
     function playSavedAudio(dir, filename) {
         audioControl.submitAudio(dir, filename, true)
+    }
+
+    function getCurrentFileDir() {
+        if (backend && backend.is_live) {
+            return backend.get_save_path()
+        }
+        return false
+    }
+
+    //construct metadata object. Central point for meta changes in the future
+    function constructMeta() {
+        return {
+            'rate':editPanel.rate
+        }
+    }
+
+    //functions for saving. Expects caller for determining eligibility (i.e. is dirty and has name for non-save-as)
+    function save() {
+        if (backend && backend.is_live) {
+            if (mainLayout.dirty || !(backend.get_model())) {
+                backend.set_text(editPanel.text)
+                backend.set_metadata(mainLayout.constructMeta())
+                //TODO: submit audio and save that as well
+            }
+            backend.save_model(null, null)
+        }
+
+        mainLayout.dirty = false
+        editPanel.clearDirty()
+    }
+
+    function saveAs(dir, name) {
+        if (backend && backend.is_live) {
+            if (mainLayout.dirty || !(backend.get_model())) {
+                backend.set_text(editPanel.text)
+                backend.set_metadata(mainLayout.constructMeta())
+                //TODO: submit audio and save that as well
+                //TODO: here we ALSO have to grab the temp location for the move
+            }
+            backend.save_model(dir, name)
+        }
+
+       //TODO: update UI
+
+        mainLayout.dirty = false
+        editPanel.clearDirty()
     }
 }
