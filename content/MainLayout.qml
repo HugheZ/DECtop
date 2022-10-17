@@ -85,6 +85,7 @@ Rectangle {
                     Layout.maximumHeight: 50
                     Layout.fillHeight: false
                     Layout.fillWidth: true
+                    onPressed: mainLayout.runTTS()
                 }
 
             }
@@ -114,12 +115,19 @@ Rectangle {
         }
     }
 
+    // Resets the document and edit panel
+    //
+    //
     function newDocument() {
         editPanel.reset()
         //reset dirty value, since above modifies values
-        dirty = false
+        mainLayout.dirty = false
+        audioControl.clearAudio()
     }
 
+    // Loads the directory and sets the editPanel / audio player to the source
+    //
+    //
     function loadAndEditAudio(dir, filename) {
         if (backend && backend.is_live) {
             backend.load_transcript(dir + '/' + filename)
@@ -128,30 +136,57 @@ Rectangle {
             var backendModel = backend.get_model()
             editPanel.setDect(backendModel)
             //IF we have cached audio, also submit that
-            var qUrl = backend.get_qurl_cached_audio()
-            if (qUrl) {
-                qUrl = qUrl.toString()
-                const lastDirIndex = qUrl.lastIndexOf('/')
-                audioControl.submitAudio(qUrl.slice(0, lastDirIndex),
-                                         qUrl.slice(lastDirIndex + 1),
-                                         false)
-            }
+            mainLayout.splitUrlAndQueue(backend.get_qurl_cached_audio())
         } else {
             console.log('TODO: load and edit ' + dir + '/' + filename)
         }
     }
 
+    //just plays the cached audio, nothing else
+    //
+    //
+    function playSavedAudio(dir, filename) {
+        audioControl.submitAudio(dir, filename, true)
+    }
+
+    //
+    //
+    //
+    function splitUrlAndQueue(qUrl) {
+        if (qUrl) {
+            qUrl = qUrl.toString()
+            const lastDirIndex = qUrl.lastIndexOf('/')
+            audioControl.submitAudio(qUrl.slice(0, lastDirIndex),
+                                     qUrl.slice(lastDirIndex + 1),
+                                     false)
+        }
+    }
+
+    // Submits the text for TTS conversion and sets the audio player
+    //
+    //
+    function runTTS() {
+        if (backend && backend.is_live) {
+            backend.set_text(editPanel.text)
+            const saveLocation = backend.run_TTS()
+            if (saveLocation && saveLocation.toString()) {
+                mainLayout.splitUrlAndQueue(saveLocation)
+            } else {
+                //we only WONT have a URL if someone hits submit without any actual text, so that can be skipped and reset
+                audioControl.clearAudio()
+            }
+        }
+    }
+
+    // Deletes the provided directory
+    //
+    //
     function deleteAudioDir(dir) {
         if (backend && backend.is_live) {
             backend.delete_audio_library(dir)
         } else {
             console.log('TODO: delete ' + dir)
         }
-    }
-
-    //just plays the cached audio, nothing else
-    function playSavedAudio(dir, filename) {
-        audioControl.submitAudio(dir, filename, true)
     }
 
     function getCurrentFileDir() {
@@ -162,6 +197,8 @@ Rectangle {
     }
 
     //construct metadata object. Central point for meta changes in the future
+    //
+    //
     function constructMeta() {
         return {
             'rate':editPanel.rate
@@ -169,6 +206,8 @@ Rectangle {
     }
 
     //functions for saving. Expects caller for determining eligibility (i.e. is dirty and has name for non-save-as)
+    //
+    //
     function save() {
         if (backend && backend.is_live) {
             if (mainLayout.dirty || !(backend.get_model())) {

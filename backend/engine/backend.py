@@ -1,5 +1,8 @@
 from os import path, makedirs
+from tempfile import TemporaryDirectory
 from shutil import rmtree, move
+from uuid import uuid5
+from .dec import DECEngine
 import json
 from PySide6.QtCore import Slot, QObject, QUrl, QDir
 from PySide6.QtQml import QmlElement
@@ -12,15 +15,20 @@ QML_IMPORT_NAME = 'DECtop'
 @QmlElement
 class QmlBackend(QObject):
 
-    def __init__(self, parent=None, dec_engine=None):
+    def __init__(self, parent=None, dec_engine:DECEngine=None):
         QObject.__init__(self, parent)
         self.engine = dec_engine
         self.model = None
         self.save_dir = None
         self.name = None
+        self.__temp_dir = TemporaryDirectory(prefix='DECTop') #link to obj so it can be deleted later
 
     @Slot(str, result=dict)
     def load_transcript(self, dectfile) -> None:
+        '''
+        Loads a transcript file.
+        Expects dectfile to be the full path to the .dect file
+        '''
         if not path.exists(dectfile):
             raise FileNotFoundError('File "' + dectfile + '" does not exist.')
         if not path.isfile(dectfile) or not dectfile.lower().endswith('.dect'):
@@ -41,6 +49,10 @@ class QmlBackend(QObject):
 
     @Slot(str)
     def delete_audio_library(self, directory) -> None:
+        '''
+        Deletes a directory.
+        The directory argument must be a full path to a directory
+        '''
         if not path.exists(directory):
             raise FileNotFoundError('Directory "' + directory + '" does not exist.')
         if not path.isdir(directory):
@@ -48,8 +60,30 @@ class QmlBackend(QObject):
         rmtree(directory)
         self.model = None
     
+    @Slot(result=QUrl)
+    def run_TTS(self) -> QUrl:
+        text = self.model.get('text')
+        if text is None or text == '':
+            return None
+        #NOTE cannot use TemporaryFile since we want a path, and we can't double-open the file.
+        file_path = None
+        if self.model is not None and self.model.get('audio') is not None:
+            file_path = self.model.get('audio')
+        else:
+            file_path = path.join(self.__temp_dir.name, str(uuid5()) + '.wav')
+
+        #RUN YEEHAW
+        self.engine.runTTS(file_path, text)
+        #correctly ran, save to model cache and return QUrl path
+        self.model['audio'] = file_path 
+        
+        return QUrl.fromLocalFile(file_path)
+    
     @Slot(result="QVariantMap")
     def get_model(self) -> dict:
+        '''
+        Returns the underlying model as a QVariantMap. Primarily useful to see if this is a loaded file or in-memory new.
+        '''
         return self.model
 
     @Slot(result=str)
@@ -59,6 +93,9 @@ class QmlBackend(QObject):
     #handy getter for qurl-formatted URL, since doing that in QML is stupidly weird
     @Slot(result=QUrl)
     def get_qurl_cached_audio(self) -> QUrl:
+        '''
+        Retrieves the model's cached audio file as a QUrl, else None
+        '''
         if self.model is not None and self.model.get('audio') is not None:
             return QUrl.fromLocalFile(self.model['audio'])
         return None
@@ -67,6 +104,13 @@ class QmlBackend(QObject):
     # note that file_path should be to the base save dir. The 'name' parameter is treated as both final directory as well as file names
     @Slot(str, str, result=bool)
     def save_model(self, file_path, name) -> bool:
+        '''
+        Saves the underlying model (if exists) to the specified directory and name.
+        
+        file_path: path to the save directory, which is the application directory
+
+        name: name to use for the final folder and .wav/.dect files
+        '''
         if file_path is not None and name is not None:
             # filePath is a qurl, so it needs to be normalized
             to_host_path = self.qt_to_local_file(file_path)
@@ -88,6 +132,9 @@ class QmlBackend(QObject):
     #not needed now, but the logic for QT paths is so weird that I want this here for reference
     @Slot(QUrl, result=str)
     def qt_to_local_file(self, filePath) -> str:
+        '''
+        Translates a QUrl to a local filesystem url
+        '''
         q_url = filePath
         if not isinstance(filePath, QUrl):
             q_url = QUrl(filePath)

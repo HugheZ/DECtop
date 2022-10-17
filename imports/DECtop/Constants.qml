@@ -27,6 +27,4 @@ QtObject {
 //    }
 
     readonly property string saveDir: StandardPaths.writableLocation(StandardPaths.DocumentsLocation) + '/DECtop'
-
-    readonly property string tempDir: StandardPaths.writableLocation(StandardPaths.TempLocation) + '/DECtop'
 }

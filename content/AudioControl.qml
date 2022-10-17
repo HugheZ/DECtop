@@ -100,7 +100,6 @@ Rectangle {
     }
 
     function submitAudio(dir, name, playOnStart) {
-        console.log(dir)
         var url = Qt.url(dir)
         url = url + '/' + name
         player.source = url;
@@ -111,7 +110,8 @@ Rectangle {
 
     //called only by NEW
     function clearAudio() {
-        player.source = ''
+        player.pause()
+        player.source = 'audio/aeiou.wav'
         audioTrack.text = '<NONE>'
     }
 
