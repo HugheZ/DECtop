@@ -15,9 +15,9 @@ QML_IMPORT_NAME = 'DECtop'
 @QmlElement
 class QmlBackend(QObject):
 
-    def __init__(self, parent=None, dec_engine:DECEngine=None):
+    def __init__(self, parent=None):
         QObject.__init__(self, parent)
-        self.engine = dec_engine
+        self.engine = DECEngine()
         self.model = None
         self.save_dir = None
         self.name = None

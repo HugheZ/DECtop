@@ -1,6 +1,7 @@
 import ctypes
 from ctypes import wintypes
 from ctypes import byref
+from ..registry.regset import get_dll_reg
 # from math import max
 
 NO_AUDIO = wintypes.DWORD(0x80000000)
@@ -15,7 +16,8 @@ SPEAK_RATE_DEFAULT = 200
 
 class DECEngine():
     def __init__(self):
-        self.dll = ctypes.WinDLL('dectalk.dll')
+        dll_path = get_dll_reg()
+        self.dll = ctypes.WinDLL('dectalk.dll' if dll_path is None else dll_path)
         self.handle = ctypes.c_void_p()
         self.speak_rate = SPEAK_RATE_DEFAULT
 
