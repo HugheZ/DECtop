@@ -1,7 +1,6 @@
 from os import path, makedirs
-from tempfile import TemporaryDirectory
+from ..temp.tempmanager import TempFileManager
 from shutil import rmtree, move
-from uuid import uuid5
 from .dec import DECEngine
 import json
 from PySide6.QtCore import Slot, QObject, QUrl, QDir
@@ -21,7 +20,7 @@ class QmlBackend(QObject):
         self.model = None
         self.save_dir = None
         self.name = None
-        self.__temp_dir = TemporaryDirectory(prefix='DECTop') #link to obj so it can be deleted later
+        self.__temp = TempFileManager('DECTop') #link to obj so it can be deleted later
 
     @Slot(str, result=dict)
     def load_transcript(self, dectfile) -> None:
@@ -70,9 +69,10 @@ class QmlBackend(QObject):
         if self.model is not None and self.model.get('audio') is not None:
             file_path = self.model.get('audio')
         else:
-            file_path = path.join(self.__temp_dir.name, str(uuid5()) + '.wav')
+            file_path = self.__temp.new_file('wav')
 
         #RUN YEEHAW
+        #TODO: swap this with HTTP call
         self.engine.runTTS(file_path, text)
         #correctly ran, save to model cache and return QUrl path
         self.model['audio'] = file_path 

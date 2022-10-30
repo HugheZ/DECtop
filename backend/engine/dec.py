@@ -1,7 +1,6 @@
 import ctypes
 from ctypes import wintypes
 from ctypes import byref
-from ..registry.regset import get_dll_reg
 # from math import max
 
 NO_AUDIO = wintypes.DWORD(0x80000000)
@@ -15,15 +14,16 @@ SPEAK_RATE_MAX = 600
 SPEAK_RATE_DEFAULT = 200
 
 class DECEngine():
-    def __init__(self):
-        dll_path = get_dll_reg()
-        self.dll = ctypes.WinDLL('dectalk.dll' if dll_path is None else dll_path)
+    def __init__(self, dll_path: str = 'dectalk.dll'):
+        #dll_path = get_dll_reg()
+        print(dll_path)
+        self.dll = ctypes.WinDLL(dll_path)
         self.handle = ctypes.c_void_p()
         self.speak_rate = SPEAK_RATE_DEFAULT
 
         errcode = self.dll.TextToSpeechStartup(NULL_PTR, byref(self.handle), WAVE_MAPPER, NO_AUDIO)
         if errcode != 0:
-            print('ERROR during DLL load: ' + str(errcode))
+            print('ERROR during DLL load: ' + str(errcode)) #TODO: currently getting 4 = ERROR_READING_DICTIONARY
         else:
             print('DLL loaded successfully')
     
@@ -40,8 +40,8 @@ class DECEngine():
             raise TypeError("Arguments outfile and text must be strings")
         
         self.dll.TextToSpeechSetRate(self.handle, wintypes.DWORD(self.speak_rate))
-        self.dll.TextToSpeechOpenWaveOutFile(self.handle, bytes(outfile), WAV_FORMAT)
-        self.dll.TextToSpeechSpeak(self.handle, ctypes.c_char_p(text), ctypes.c_int(1)) #1 is forced
+        self.dll.TextToSpeechOpenWaveOutFile(self.handle, bytes(outfile, encoding='utf-8'), WAV_FORMAT)
+        self.dll.TextToSpeechSpeak(self.handle, ctypes.c_char_p(bytes(text, encoding='utf-8')), ctypes.c_int(1)) #1 is forced
         self.dll.TextToSpeechSync(self.handle)
         self.dll.TextToSpeechCloseWaveOutFile(self.handle)
 
