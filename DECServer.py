@@ -20,7 +20,7 @@ def hello():
     audio_path = __run_tts(payload['text'], payload.get('meta', None))
 
     if __return_path:
-        return audio_path
+        return {'path':audio_path}
     
     return send_file(audio_path)
 

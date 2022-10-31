@@ -5,10 +5,12 @@ from .dec import DECEngine
 import json
 from PySide6.QtCore import Slot, QObject, QUrl, QDir
 from PySide6.QtQml import QmlElement
+import requests
 
 
 QML_IMPORT_MAJOR_VERSION = 1
 QML_IMPORT_NAME = 'DECtop'
+SIDECAR_URL = 'http://localhost:8080'
 
 
 @QmlElement
@@ -16,7 +18,6 @@ class QmlBackend(QObject):
 
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
-        self.engine = DECEngine()
         self.model = None
         self.save_dir = None
         self.name = None
@@ -73,11 +74,45 @@ class QmlBackend(QObject):
 
         #RUN YEEHAW
         #TODO: swap this with HTTP call
-        self.engine.runTTS(file_path, text)
+        self.__call_TTS_sidecar(file_path)
         #correctly ran, save to model cache and return QUrl path
         self.model['audio'] = file_path 
         
         return QUrl.fromLocalFile(file_path)
+    
+    def __call_TTS_sidecar(self, file_path: str):
+        '''
+        Calls the sidecar server for TTS translation
+
+        file_path: path to move response data to
+        '''
+        res = requests.post(SIDECAR_URL + '/run-tts',
+            json={
+                'text': self.model['text'],
+                'meta': self.model.get('metadata')
+            }
+        )
+
+        #on failure abort
+        res.raise_for_status()
+        if res.status_code > 299:
+            raise requests.exceptions.HTTPError('Non 200 Success: ' + str(res.status_code))
+        
+        #success, map
+        content_type = res.headers['Content-Type']
+        if content_type == 'application/json': #why can't mimetypes just have a nice enumeration of constants?
+            js = res.json()
+            if js.get('path', None) is None:
+                raise requests.exceptions.HTTPError('Response did not have path data in JSON')
+            move(js['path'], file_path)
+            return
+        elif content_type == 'audio/wav' or content_type == 'audio/x-wav':
+            #assume is raw wav file
+            with open(file_path, 'wb') as f:
+                f.write(res.content)
+            return
+        else:
+            raise requests.exceptions.HTTPError('Response was successful but was neither JSON nor WAV return type: ' + content_type)
     
     @Slot(result="QVariantMap")
     def get_model(self) -> dict:
