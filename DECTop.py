@@ -1,7 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import sys
 
-from os import path, environ
+from os import makedirs, path, environ
 from backend.engine.backend import QmlBackend #import so it gets registered with annotation
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
@@ -19,6 +19,11 @@ def __add_modules(qml_engine) -> None:
     qml_engine.addImportPath("content")
 
 if __name__ == "__main__":
+    # first, ensure documents folder exists
+    dec_dir = path.expanduser(path.join('~','Documents','DECtop'))
+    if not path.exists(dec_dir):
+        makedirs(dec_dir)
+
     # get QML runtime
     app = QGuiApplication(sys.argv)
     engine = QQmlApplicationEngine()
