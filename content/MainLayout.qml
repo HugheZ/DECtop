@@ -96,7 +96,6 @@ Rectangle {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
 
-                //TODO hooks
                 onPlayAudio: (dir, filename) => mainLayout.playSavedAudio(dir, filename)
                 onEditAudio: (dir, filename) => mainLayout.loadAndEditAudio(dir, filename)
                 onDeleteAudio: (dir) => mainLayout.deleteAudioDir(dir)
@@ -130,6 +129,7 @@ Rectangle {
     //
     function loadAndEditAudio(dir, filename) {
         if (backend && backend.is_live) {
+            const splitDir = dir.toString().split('/')
             backend.load_transcript(dir + '/' + filename)
 
             //now link up to the ui
@@ -137,6 +137,9 @@ Rectangle {
             editPanel.setDect(backendModel)
             //IF we have cached audio, also submit that
             mainLayout.splitUrlAndQueue(backend.get_qurl_cached_audio())
+            //need to clear dirty, since setting text programatically == manually editing... for some reason
+            mainLayout.dirty = false
+            editPanel.clearDirty(splitDir[splitDir.length -1])
         } else {
             console.log('TODO: load and edit ' + dir + '/' + filename)
         }
@@ -167,6 +170,7 @@ Rectangle {
     //
     function runTTS() {
         if (backend && backend.is_live) {
+            audioControl.clearAudio()
             backend.set_text(editPanel.text)
             const saveLocation = backend.run_TTS()
             if (saveLocation && saveLocation.toString()) {
@@ -211,9 +215,10 @@ Rectangle {
     function save() {
         if (backend && backend.is_live) {
             if (mainLayout.dirty || !(backend.get_model())) {
+                audioControl.clearAudio() //clear so we can access the wav file
                 backend.set_text(editPanel.text)
                 backend.set_metadata(mainLayout.constructMeta())
-                //TODO: submit audio and save that as well
+                const save_location = backend.run_TTS() //submit so audio is up to date
             }
             backend.save_model(null, null)
         }
@@ -225,17 +230,19 @@ Rectangle {
     function saveAs(dir, name) {
         if (backend && backend.is_live) {
             if (mainLayout.dirty || !(backend.get_model())) {
+                audioControl.clearAudio() //clear so we can access the wav file
                 backend.set_text(editPanel.text)
                 backend.set_metadata(mainLayout.constructMeta())
+                const save_location = backend.run_TTS() //submit so audio is up to date
                 //TODO: submit audio and save that as well
                 //TODO: here we ALSO have to grab the temp location for the move
             }
             backend.save_model(dir, name)
         }
 
-       //TODO: update UI
+       editPanel.set
 
         mainLayout.dirty = false
-        editPanel.clearDirty()
+        editPanel.clearDirty(name)
     }
 }

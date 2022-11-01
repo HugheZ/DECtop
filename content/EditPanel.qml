@@ -121,9 +121,11 @@ Rectangle {
     }
 
     //called on save, this removes the * at the end of the file and clears dirty
-    function clearDirty() {
+    function clearDirty(newName) {
         editPanel.dirty = false
-        if (titleAndLocation.text.endsWith('*'))
+        if (newName)
+            titleAndLocation.text = newName
+        else if (titleAndLocation.text.endsWith('*'))
             titleAndLocation.text = titleAndLocation.text.replace(/.$/, '') //remove last * to indicate modified
     }
 
