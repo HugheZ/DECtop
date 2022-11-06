@@ -48,8 +48,23 @@ CMakeLists.txt.user*
 # QtCreator 4.8< compilation database 
 compile_commands.json
 
+# QtCreator local machine specific files for imported projects
+*creator.user*
+*.qtds
+
 # Additional files, such as dectalk.dll which isn't open source
 /includes/*
 
-# QtCreator local machine specific files for imported projects
-*creator.user*
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/

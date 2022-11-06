@@ -1,0 +1,13 @@
+//Sample file for the DECtop application. .dect files are zipped combination files of a JSON with the below schema and a wav file. It holds text data along with metadata and cached audio.
+
+model.json:
+    {
+        "text":"example dictation ascii text verbatim",
+        "metadata": {
+            "rate": 250, //speaking rate
+            "speaker":"DECtalk speaker name?"
+        }
+    }
+
+audio.wav:
+    ######

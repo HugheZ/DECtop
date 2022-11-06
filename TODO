@@ -1,0 +1,3 @@
+- on saveAs, queue audio
+- general code quality and maintenance
+- change getters on backend to @property syntax
