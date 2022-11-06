@@ -15,3 +15,5 @@ Once stable, you can either query localhost on port 8080 or run the DECTop QT fr
 
 # A Note on Licenses
 While DECServer will set up registry keys, it will not provide a valid license password or license count. You will need a valid license of DECtalk. If you have a setup script handy, you can instead run that. DECServer determines the location of the dectalk.dll file based on the MainDict location, so it should work with any install of DECtalk.
+
+However, since Windows registry use is used for dll localization, there is no support for SOs, and this is developed using Windows ctypes for the demo copy of dectalk I had available, it currently isn't runnable on a non-Windows OS. So you'll need to fallback to either wine or your container of choice.
