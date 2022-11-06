@@ -8,11 +8,12 @@ Rectangle {
     height: 60
     border.width: 1
     property alias titleText: title.text
-    property url directory
+    property url filePath
     antialiasing: false
 
-    signal playAudio(url directory, string title)
-    signal editAudio(url directory, string title)
+    //each of these signals should emit FULL file path as well as simple name (so we don't have to call backend for that)
+    signal playAudio(url filePath, string title)
+    signal editAudio(url filePath, string title)
     signal deleteAudio(url directory)
 
     MessageDialog {
@@ -23,7 +24,7 @@ Rectangle {
 
         //if we accept, send the delete
         onAccepted: {
-            savedAudio.deleteAudio(directory)
+            savedAudio.deleteAudio(filePath)
         }
     }
 
@@ -49,7 +50,7 @@ Rectangle {
         display: AbstractButton.IconOnly
         anchors.leftMargin: 8
         anchors.bottomMargin: 6
-        onPressed: savedAudio.playAudio(directory, titleText + '.wav')
+        onPressed: savedAudio.playAudio(filePath, titleText)
     }
 
     Button {
@@ -64,7 +65,7 @@ Rectangle {
         display: AbstractButton.IconOnly
         anchors.leftMargin: 47
         anchors.bottomMargin: 6
-        onPressed: savedAudio.editAudio(directory, titleText + '.dect')
+        onPressed: savedAudio.editAudio(filePath, titleText)
     }
 
     Button {

@@ -99,11 +99,10 @@ Rectangle {
         }
     }
 
-    function submitAudio(dir, name, playOnStart) {
-        var url = Qt.url(dir)
-        url = url + '/' + name
+    function submitAudio(file, name, playOnStart) {
+        var url = Qt.url(file)
         player.source = url;
-        audioTrack.text = name
+        audioTrack.text = name ? name : 'Untitled'
         if (playOnStart)
             play()
     }

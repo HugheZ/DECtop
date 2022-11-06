@@ -115,6 +115,8 @@ Rectangle {
         }
     }
 
+    ErrorDialog { id: errorDialog }
+
     // Resets the document and edit panel
     //
     //
@@ -128,39 +130,57 @@ Rectangle {
     // Loads the directory and sets the editPanel / audio player to the source
     //
     //
-    function loadAndEditAudio(dir, filename) {
+    function loadAndEditAudio(filePath, filename) {
         if (backend && backend.is_live) {
-            backend.load_transcript(dir + '/' + filename)
+            //clear audio hold on file
+            audioControl.clearAudio()
+
+            backend.load_transcript(filePath)
 
             //now link up to the ui
             var backendModel = backend.get_model()
             editPanel.setDect(backendModel)
             //IF we have cached audio, also submit that
-            mainLayout.splitUrlAndQueue(backend.get_qurl_cached_audio())
+            const url = backend.get_cached_audio()
+            if (url)
+                audioControl.submitAudio(url,
+                                     filename,
+                                     false)
         } else {
-            console.log('TODO: load and edit ' + dir + '/' + filename)
+            errorDialog.openError('TODO: load and edit ' + filePath, filename)
         }
     }
 
     //just plays the cached audio, nothing else
     //
     //
-    function playSavedAudio(dir, filename) {
-        audioControl.submitAudio(dir, filename, true)
-    }
-
-    //
-    //
-    //
-    function splitUrlAndQueue(qUrl) {
-        if (qUrl) {
-            qUrl = qUrl.toString()
-            const lastDirIndex = qUrl.lastIndexOf('/')
-            audioControl.submitAudio(qUrl.slice(0, lastDirIndex),
-                                     qUrl.slice(lastDirIndex + 1),
-                                     false)
+    function playSavedAudio(path, filename) {
+        if (backend && backend.is_live) {
+            //clear audio hold on file
+            audioControl.clearAudio()
+            
+            const cachePath = backend.load_audio_only(path)
+            if (cachePath)
+                audioControl.submitAudio(cachePath, filename, true)
+            else
+                errorDialog.openError('The loaded .dect file did not have a cached .wav audio file.', 'The .dect library must have a present \"model.json\" as well as an expected \"audio.wav\" file.\nIf cached audio is not present, you will need to re-run TTS.')
+        } else {
+            errorDialog.openError('TODO: play audio ' + path, filename)
         }
     }
+
+//Not used, kept around just in case
+//    //
+//    //
+//    function splitUrlAndQueue(qUrl) {
+//        if (qUrl) {
+//            qUrl = qUrl.toString()
+//            const lastDirIndex = qUrl.lastIndexOf('/')
+//            audioControl.submitAudio(qUrl.slice(0, lastDirIndex),
+//                                     qUrl.slice(lastDirIndex + 1),
+//                                     false)
+//        }
+//    }
 
     // Submits the text for TTS conversion and sets the audio player
     //
@@ -170,7 +190,7 @@ Rectangle {
             backend.set_text(editPanel.text)
             const saveLocation = backend.run_TTS()
             if (saveLocation && saveLocation.toString()) {
-                mainLayout.splitUrlAndQueue(saveLocation)
+                audioControl.submitAudio(saveLocation, backend.get_name(), true)
             } else {
                 //we only WONT have a URL if someone hits submit without any actual text, so that can be skipped and reset
                 audioControl.clearAudio()
@@ -185,7 +205,7 @@ Rectangle {
         if (backend && backend.is_live) {
             backend.delete_audio_library(dir)
         } else {
-            console.log('TODO: delete ' + dir)
+            errorDialog.openError('TODO: delete ' + dir)
         }
     }
 
@@ -237,5 +257,12 @@ Rectangle {
 
         mainLayout.dirty = false
         editPanel.clearDirty()
+    }
+
+    // Final cleanup function, breaks all file bindings
+    //
+    //
+    function cleanup() {
+        audioControl.clearAudio()
     }
 }

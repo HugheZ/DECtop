@@ -51,20 +51,21 @@ Rectangle {
             model: FolderListModel {
                 id: savedAudioFilesModel
                 folder: Constants.saveDir
-                showFiles: false
-                showDirs: true
+                showFiles: true
+                showDirs: false
+                nameFilters: ["*.dect"]
             }
 
             delegate: SavedAudio {
                 id: savedAudioDelegate
                 width: listView.width - 5
                 height: 60
-                directory: filePath // /place/in/dir/savedir/filename
-                titleText: fileName // /place/in/dir/savedir/filename/<filename.dect or filename.wav>
+                filePath: fileUrl // /place/in/dir/savedir/filename
+                titleText: fileBaseName // /place/in/dir/savedir/filename/<filename.dect or filename.wav>
                 //I've been workin' on the chain gang, all the live-long day
-                onPlayAudio: (directory, filename) => savedList.playAudio(directory, filename)
-                onEditAudio: (directory, filename) => savedList.editAudio(directory, filename)
-                onDeleteAudio: directory => savedList.deleteAudio(directory)
+                onPlayAudio: (filePath, title) => savedList.playAudio(filePath, title)
+                onEditAudio: (filePath, title) => savedList.editAudio(filePath, title)
+                onDeleteAudio: filePath => savedList.deleteAudio(filePath)
             }
             headerPositioning: ListView.OverlayHeader
             header: Rectangle {

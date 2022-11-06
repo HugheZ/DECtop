@@ -61,7 +61,7 @@ Window {
         text: "Are you sure you would like to quit? You have unsaved changes to transcript and or audio file."
 
         buttons: MessageDialog.Yes | MessageDialog.Cancel
-        onAccepted: { Qt.exit(0) } //MUST be exit, or else we get an onClose loop
+        onAccepted: { exitApp() }
     }
 
     MessageDialog {
@@ -113,7 +113,7 @@ Window {
     function beforeQuit() {
         if (mainScreen.dirty)
             quitConfirm.open()
-        else Qt.quit()
+        else exitApp()
     }
 
     function beforeNew() {
@@ -137,5 +137,13 @@ Window {
     function saveAs(name) {
         if (mainScreen.dirty)
             mainScreen.saveAs(Constants.saveDir, name)
+    }
+
+    // Exits the app, calls mainLayout to clear up file bindings
+    //
+    //
+    function exitApp() {
+        mainScreen.cleanup()
+        Qt.exit(0) //MUST be exit, or else we get an onClose loop in dialog closes
     }
 }
