@@ -1,7 +1,7 @@
 from winreg import CreateKey, OpenKey, ConnectRegistry, HKEY_LOCAL_MACHINE, REG_SZ, SetValueEx, QueryValueEx
 from os import path
 
-__DEG_REG_US = 'SOFTWARE\\DECtalk Software\\DECtalk\\4.61\\US' #for dict location and such
+__DEC_REG_US = 'SOFTWARE\\DECtalk Software\\DECtalk\\4.61\\US' #for dict location and such
 __DEC_REG_LANGS = 'SOFTWARE\\DECtalk Software\\DECtalk\\Langs' #for installed dict (only US currently supported)
 __DEC_REG = 'SOFTWARE\\DECtalk Software\\DECtalk\\4.61' #for installation details
 __LANGUAGE = 'Language'
@@ -41,13 +41,14 @@ __INSTALL_PROPS = {
 # 3. MainDict=<location of main directory>
 # 4. Version=DECtalk <langcode> version <version>
 
-def __ensure_key(registry, values):
+def __ensure_key(registry, values, reg_path):
     '''
     Sets key value by create to ensure the key exists.
     registry: actual connected registry
     values: dict of registry values
+    reg_path: registry key to set
     '''
-    key = CreateKey(registry, __DEG_REG_US)
+    key = CreateKey(registry, reg_path)
     for reg_key in values:
         SetValueEx(key, reg_key, 0, REG_SZ, values[reg_key])
     key.Close()
@@ -56,9 +57,9 @@ def setup_dec_reg(install_location=path.join(path.dirname(path.dirname(path.real
     reg = ConnectRegistry(None, HKEY_LOCAL_MACHINE)
     __US_PROPS[__MAIN_DICT]=path.join(install_location, __DIC)
     
-    __ensure_key(reg, __US_PROPS)
-    __ensure_key(reg, __LANGS_PROPS)
-    __ensure_key(reg, __INSTALL_PROPS)
+    __ensure_key(reg, __US_PROPS, __DEC_REG_US)
+    __ensure_key(reg, __LANGS_PROPS, __DEC_REG_LANGS)
+    __ensure_key(reg, __INSTALL_PROPS, __DEC_REG)
     
     reg.Close()
 
@@ -66,7 +67,7 @@ def setup_dec_reg(install_location=path.join(path.dirname(path.dirname(path.real
 
 def get_dll_reg():
     reg = ConnectRegistry(None, HKEY_LOCAL_MACHINE)
-    key = OpenKey(reg, __DEG_REG_US)
+    key = OpenKey(reg, __DEC_REG_US)
     retval = QueryValueEx(key, __MAIN_DICT)
     reg.Close()
     return None if retval is None or retval[1] != 1 else retval[0] #if none or tuple'd type is not 1 for STR return None, else return the STR path

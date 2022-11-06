@@ -95,7 +95,6 @@ Rectangle {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
 
-                //TODO hooks
                 onPlayAudio: (dir, filename) => mainLayout.playSavedAudio(dir, filename)
                 onEditAudio: (dir, filename) => mainLayout.loadAndEditAudio(dir, filename)
                 onDeleteAudio: (dir) => mainLayout.deleteAudioDir(dir)
@@ -233,9 +232,10 @@ Rectangle {
     function save() {
         if (backend && backend.is_live) {
             if (mainLayout.dirty || !(backend.get_model())) {
+                audioControl.clearAudio() //clear so we can access the wav file
                 backend.set_text(editPanel.text)
                 backend.set_metadata(mainLayout.constructMeta())
-                //TODO: submit audio and save that as well
+                const save_location = backend.run_TTS() //submit so audio is up to date
             }
             backend.save_model(null, null)
         }
@@ -247,18 +247,27 @@ Rectangle {
     function saveAs(dir, name) {
         if (backend && backend.is_live) {
             if (mainLayout.dirty || !(backend.get_model())) {
+                audioControl.clearAudio() //clear so we can access the wav file
                 backend.set_text(editPanel.text)
                 backend.set_metadata(mainLayout.constructMeta())
+                const save_location = backend.run_TTS() //submit so audio is up to date
                 //TODO: submit audio and save that as well
                 //TODO: here we ALSO have to grab the temp location for the move
             }
             backend.save_model(dir, name)
         }
 
-       //TODO: update UI
+       editPanel.set
 
         mainLayout.dirty = false
         editPanel.clearDirty()
+    }
+
+    // Final cleanup function, breaks all file bindings
+    //
+    //
+    function cleanup() {
+        audioControl.clearAudio()
     }
 
     // Final cleanup function, breaks all file bindings
