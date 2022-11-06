@@ -244,7 +244,7 @@ Rectangle {
         editPanel.clearDirty()
     }
 
-    function saveAs(dir, name) {
+    function saveAs(filePath, name) {
         if (backend && backend.is_live) {
             if (mainLayout.dirty || !(backend.get_model())) {
                 audioControl.clearAudio() //clear so we can access the wav file
@@ -254,20 +254,12 @@ Rectangle {
                 //TODO: submit audio and save that as well
                 //TODO: here we ALSO have to grab the temp location for the move
             }
-            backend.save_model(dir, name)
+            backend.save_model(filePath, name)
+            editPanel.setName(backend.get_save_path())
         }
-
-       editPanel.set
 
         mainLayout.dirty = false
         editPanel.clearDirty()
-    }
-
-    // Final cleanup function, breaks all file bindings
-    //
-    //
-    function cleanup() {
-        audioControl.clearAudio()
     }
 
     // Final cleanup function, breaks all file bindings
