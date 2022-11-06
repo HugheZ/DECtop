@@ -13,7 +13,7 @@ Rectangle {
     color: Constants.backgroundColor
 
     //TODO: make this alias of editPanel.dirty
-    property bool dirty: false
+    property alias dirty: editPanel.dirty
 
     //Python backend object
     QmlBackend {id: backend}
@@ -74,7 +74,6 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                     transformOrigin: Item.Center
-                    onModified: mainLayout.dirty = true
                 }
 
                 Button {
@@ -139,7 +138,7 @@ Rectangle {
 
             //now link up to the ui
             var backendModel = backend.get_model()
-            editPanel.setDect(backendModel)
+            editPanel.setDect(backendModel, backend.qt_to_local_file(filePath)) //yay, qml doesn't have a nice way to go QML url to filesystem url...
             //IF we have cached audio, also submit that
             const url = backend.get_cached_audio()
             if (url)
@@ -158,7 +157,7 @@ Rectangle {
         if (backend && backend.is_live) {
             //clear audio hold on file
             audioControl.clearAudio()
-            
+
             const cachePath = backend.load_audio_only(path)
             if (cachePath)
                 audioControl.submitAudio(cachePath, filename, true)
@@ -187,6 +186,9 @@ Rectangle {
     //
     function runTTS() {
         if (backend && backend.is_live) {
+            //clear audio hold on file
+            audioControl.clearAudio()
+
             backend.set_text(editPanel.text)
             const saveLocation = backend.run_TTS()
             if (saveLocation && saveLocation.toString()) {

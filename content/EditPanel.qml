@@ -129,7 +129,7 @@ Rectangle {
 
     //expects dect obj, see example.dect for format
     //unfortunately, changing text still emits the modified event, so that sucks
-    function setDect(dect) {
+    function setDect(dect, fileLocation) {
         if (dect) {
             if (dect.text)
                 textInput.text = dect.text
@@ -137,6 +137,12 @@ Rectangle {
                 if (dect.metadata.rate)
                     speakingRate.value = dect.metadata.rate
             }
+
+            if (fileLocation)
+                titleAndLocation.text = fileLocation
+            
+            //have to manually clear dirty, love how 'programmatic' set still sets 'onModified'
+            editPanel.dirty = false
         } else {
             reset()
         }

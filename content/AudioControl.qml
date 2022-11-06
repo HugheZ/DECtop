@@ -105,6 +105,7 @@ Rectangle {
         audioTrack.text = name ? name : 'Untitled'
         if (playOnStart)
             play()
+        else pause()
     }
 
     //called only by NEW
