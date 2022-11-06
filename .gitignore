@@ -50,6 +50,7 @@ compile_commands.json
 
 # QtCreator local machine specific files for imported projects
 *creator.user*
+*.qtds
 
 # Additional files, such as dectalk.dll which isn't open source
 /includes/*
